@@ -1,0 +1,36 @@
+# Core FastAPI Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Document Processing
+PyMuPDF>=1.26.0
+Pillow==10.1.0
+python-multipart==0.0.6
+
+# File Handling
+aiofiles==23.2.1
+
+# Utilities
+python-dotenv==1.0.0
+PyYAML==6.0.1
+httpx==0.25.2
+
+# AI/LLM Integration
+openai==1.45.0
+anthropic==0.34.0
+tiktoken==0.7.0
+
+# Additional processing
+scikit-learn>=1.7.2
+numpy>=2.3.3
+
+# Vector Database
+pinecone==5.3.1
+
+# Web Crawling and Knowledge Extraction
+crawl4ai==0.4.24
+litellm>=1.0.0
+beautifulsoup4==4.12.3
+lxml==5.1.0

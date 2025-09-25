@@ -1,0 +1,193 @@
+# Crawl4AI Configuration for ISO 27001 Knowledge Extraction
+
+# Authoritative sources for ISO 27001 control information
+sources:
+  iso_controls:
+    - name: "ISO 27001 Security"
+      url: "https://www.iso27001security.com/html/27001.html"
+      type: "reference"
+      priority: 1
+      selectors:
+        title: "h2.control-title"
+        description: "div.control-description"
+        requirements: "ul.requirements li"
+
+    - name: "Advisera ISO 27001"
+      url: "https://advisera.com/27001academy/iso-27001-controls/"
+      type: "guide"
+      priority: 2
+      selectors:
+        control_content: "div.control-content"
+        implementation: "div.implementation-guide"
+
+  nist_mappings:
+    - name: "NIST OLIR Catalog"
+      url: "https://csrc.nist.gov/projects/olir/informative-reference-catalog"
+      type: "mapping"
+      priority: 1
+      api_endpoint: "https://csrc.nist.gov/api/olir/mappings"
+
+    - name: "NIST CSF Mapping"
+      url: "https://www.nist.gov/cyberframework/framework"
+      type: "framework"
+      priority: 2
+
+  implementation_guides:
+    - name: "IT Governance UK"
+      url: "https://www.itgovernance.co.uk/iso27001"
+      type: "implementation"
+      priority: 1
+
+    - name: "SANS Security Controls"
+      url: "https://www.sans.org/cyber-security-courses/auditing-networks-perimeters-systems/"
+      type: "training"
+      priority: 2
+
+  regulatory_mappings:
+    - name: "GDPR Mapping"
+      url: "https://www.privacycompany.eu/blogpost-en/iso-27001-gdpr-mapping"
+      type: "regulatory"
+      framework: "GDPR"
+
+    - name: "HIPAA Mapping"
+      url: "https://www.hipaajournal.com/iso-27001-hipaa-compliance/"
+      type: "regulatory"
+      framework: "HIPAA"
+
+    - name: "PCI DSS Mapping"
+      url: "https://www.pcisecuritystandards.org/documents/ISO_IEC_27001_Mapping_to_PCI_DSS_v3.pdf"
+      type: "regulatory"
+      framework: "PCI DSS"
+
+  industry_examples:
+    - name: "Healthcare Implementation"
+      url: "https://www.hhs.gov/hipaa/for-professionals/security/guidance/cybersecurity/index.html"
+      industry: "Healthcare"
+
+    - name: "Financial Services"
+      url: "https://www.bis.org/bcbs/publ/d454.pdf"
+      industry: "Financial"
+
+    - name: "Technology Sector"
+      url: "https://cloud.google.com/security/compliance/iso-27001"
+      industry: "Technology"
+
+# Crawling settings
+crawl_settings:
+  max_depth: 2                    # Maximum crawl depth for deep crawling
+  rate_limit: 1                   # Requests per second
+  timeout: 30                     # Request timeout in seconds
+  retry_attempts: 3               # Number of retry attempts
+  cache_duration_days: 7          # Cache validity in days
+  batch_size: 10                  # Number of controls to crawl in batch
+  concurrent_requests: 5          # Maximum concurrent requests
+  user_agent: "ISO27001-Agent/1.0 (Educational)"
+
+  # JavaScript rendering settings
+  js_rendering:
+    enabled: true
+    wait_for_selector: "div.content"
+    wait_timeout: 10000          # milliseconds
+
+# Extraction strategies
+extraction:
+  # LLM-based extraction settings
+  llm_extraction:
+    provider: "openai/gpt-4o-mini"
+    max_tokens: 2000
+    temperature: 0.1
+    chunk_size: 4000
+
+    prompts:
+      control_details: |
+        Extract ISO 27001 control information:
+        - Control ID
+        - Title and description
+        - Implementation requirements
+        - Best practices
+        - Common gaps
+        Return as structured JSON.
+
+      mapping_extraction: |
+        Extract framework mappings for ISO control {control_id}:
+        - NIST CSF controls
+        - CIS controls
+        - Other framework mappings
+        Include mapping confidence level.
+
+      implementation_guide: |
+        Extract implementation guidance:
+        - Step-by-step procedures
+        - Required documentation
+        - Common pitfalls
+        - Industry examples
+
+  # CSS/XPath extraction patterns
+  structured_extraction:
+    control_patterns:
+      - selector: "div.control-item"
+        fields:
+          id: ".control-id"
+          title: ".control-title"
+          description: ".control-desc"
+
+      - xpath: "//div[@class='iso-control']"
+        fields:
+          id: "./@data-control-id"
+          title: "./h3/text()"
+          description: "./div[@class='description']/text()"
+
+    mapping_patterns:
+      - selector: "table.mapping-table tr"
+        fields:
+          iso_control: "td:nth-child(1)"
+          mapped_control: "td:nth-child(2)"
+          confidence: "td:nth-child(3)"
+
+# Data enrichment settings
+enrichment:
+  enable_cross_referencing: true
+  enable_synonym_matching: true
+  enable_context_extraction: true
+
+  synonyms:
+    mfa:
+      - "multi-factor authentication"
+      - "two-factor authentication"
+      - "2fa"
+      - "strong authentication"
+
+    encryption:
+      - "cryptography"
+      - "cipher"
+      - "data protection"
+      - "secure communication"
+
+# Quality control
+quality_control:
+  minimum_confidence_score: 0.6
+  require_source_citation: true
+  validate_control_ids: true
+  check_duplicate_content: true
+
+# Monitoring and logging
+monitoring:
+  log_level: "INFO"
+  log_file: "logs/crawler.log"
+  metrics_enabled: true
+
+  alerts:
+    - type: "source_unavailable"
+      threshold: 3              # consecutive failures
+      notify: "admin@example.com"
+
+    - type: "low_quality_extraction"
+      threshold: 0.5            # confidence score
+      notify: "admin@example.com"
+
+# Export settings
+export:
+  format: "json"                # json, csv, sqlite
+  output_dir: "data/iso_knowledge"
+  include_metadata: true
+  compress: false
