@@ -17,14 +17,10 @@ from .config.settings import get_settings
 from .iso_agent.iso_expert import ISOExpertAgent
 from .iso_agent.iso_helpers import ISOAnalysisHelpers
 
-# Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Get settings
 settings = get_settings()
-
-# Initialize ISO Expert Agent
 iso_agent = ISOExpertAgent()
 
 
@@ -35,7 +31,6 @@ async def initialize_knowledge_base_on_startup():
 
         kb_manager = KnowledgeBaseManager()
 
-        # Check knowledge base status
         logger.info("Checking knowledge base status...")
         status = await kb_manager.get_status()
 
@@ -87,18 +82,12 @@ async def lifespan(app: FastAPI):
     # Ensure directories exist
     settings.ensure_directories()
 
-    # Initialize knowledge base if needed
     await initialize_knowledge_base_on_startup()
-
     logger.info("Application started successfully")
 
     yield
 
-    # Shutdown
     logger.info("Shutting down application")
-
-
-# Create FastAPI app
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
@@ -196,12 +185,9 @@ def identify_document_type(text: str, filename: str) -> str:
         'policy': ['policy', 'procedure', 'guidelines', 'compliance', 'standard', 'regulation']
     }
 
-    # Check filename first
     for doc_type, keywords in types.items():
         if any(keyword in filename_lower for keyword in keywords):
             return doc_type
-
-    # Check content
     for doc_type, keywords in types.items():
         keyword_count = sum(1 for keyword in keywords if keyword in text_lower)
         if keyword_count >= 2:  # At least 2 keyword matches
@@ -251,16 +237,12 @@ def extract_key_phrases(text: str, top_n: int = 10) -> List[str]:
 async def extract_pdf_text(file_content: bytes, filename: str = "document.pdf") -> dict:
     """Extract text from PDF content using PyMuPDF."""
     try:
-        # Create a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
             temp_file.write(file_content)
             temp_file_path = temp_file.name
 
         try:
-            # Open PDF with PyMuPDF
             doc = fitz.open(temp_file_path)
-
-            # Extract text from all pages
             full_text = ""
             page_count = len(doc)
 
@@ -271,11 +253,8 @@ async def extract_pdf_text(file_content: bytes, filename: str = "document.pdf") 
 
             doc.close()
 
-            # Calculate basic metrics
             word_count = len(full_text.split())
             char_count = len(full_text)
-
-            # Generate enhanced analysis
             text_preview = format_text_preview(full_text)
             toc_items = extract_table_of_contents(full_text)
             language = detect_language(full_text)
@@ -486,7 +465,6 @@ async def initialize_knowledge_base(force: bool = False):
         success = await kb_manager.initialize(force=force)
 
         if success:
-            # Get updated status
             status = await kb_manager.get_status()
             return {
                 "status": "success",

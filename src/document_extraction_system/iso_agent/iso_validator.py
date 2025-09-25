@@ -101,20 +101,14 @@ class ISOResponseValidator:
         iso_references = []
         non_iso_content = []
 
-        # Check for ISO references
         control_refs = self._extract_control_references(response_content)
         clause_refs = self._extract_clause_references(response_content)
 
         iso_references.extend(control_refs)
         iso_references.extend(clause_refs)
 
-        # Validate content against ISO knowledge
         iso_compliance = self._validate_iso_content(response_content)
-
-        # Check for hallucination indicators
         hallucination_check = self._check_for_hallucination(response_content)
-
-        # Check for non-ISO content based on validation level
         if self.validation_level == ValidationLevel.STRICT:
             non_iso_check = self._strict_iso_validation(response_content)
         else:

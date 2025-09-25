@@ -61,31 +61,24 @@ class VectorIndexManager:
         try:
             documents_to_store = []
 
-            # 1. Store main document analysis
             main_doc = self._create_analysis_document(agent_card)
             documents_to_store.append(main_doc)
 
-            # 2. Store individual control assessments
             for assessment in agent_card.control_assessments:
                 control_doc = self._create_control_document(assessment, agent_card.analysis_id)
                 documents_to_store.append(control_doc)
 
-            # 3. Store clause assessments
             for assessment in agent_card.clause_assessments:
                 clause_doc = self._create_clause_document(assessment, agent_card.analysis_id)
                 documents_to_store.append(clause_doc)
 
-            # 4. Store recommendations
             for recommendation in agent_card.recommendations:
                 rec_doc = self._create_recommendation_document(recommendation, agent_card.analysis_id)
                 documents_to_store.append(rec_doc)
 
-            # 5. Store gap analysis
             if agent_card.gap_analysis:
                 gap_doc = self._create_gap_analysis_document(agent_card.gap_analysis, agent_card.analysis_id)
                 documents_to_store.append(gap_doc)
-
-            # Batch store all documents
             results = await self.vector_store.store_documents_batch(documents_to_store)
 
             success_count = sum(1 for success in results.values() if success)
@@ -373,19 +366,15 @@ class VectorIndexManager:
         try:
             documents_to_store = []
 
-            # Index all controls
             controls = get_all_controls()
             for control in controls.values():
                 control_doc = self._create_knowledge_control_document(control)
                 documents_to_store.append(control_doc)
 
-            # Index all clauses
             clauses = get_all_clauses()
             for clause in clauses.values():
                 clause_doc = self._create_knowledge_clause_document(clause)
                 documents_to_store.append(clause_doc)
-
-            # Index all requirements
             requirements = get_all_requirements()
             logger.info(f"Processing {len(requirements)} requirements for indexing")
             for clause_id, requirement in requirements:
@@ -394,11 +383,8 @@ class VectorIndexManager:
                     documents_to_store.append(req_doc)
                 except Exception as e:
                     logger.error(f"Failed to process requirement {clause_id}: {e}")
-                    # Continue processing other requirements
 
             job.total_documents = len(documents_to_store)
-
-            # Batch process in chunks to avoid overwhelming the vector store
             chunk_size = 50
             for i in range(0, len(documents_to_store), chunk_size):
                 chunk = documents_to_store[i:i + chunk_size]
